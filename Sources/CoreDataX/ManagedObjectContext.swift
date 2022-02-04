@@ -10,10 +10,6 @@ public final actor ManagedObjectContext {
     internal init(rawValue: NSManagedObjectContext) {
         self.rawValue = rawValue
     }
-
-    public func create<Entity: ManagedObject>() -> Entity {
-        Entity(context: rawValue)
-    }
 }
 
 extension ManagedObjectContext {
@@ -21,17 +17,21 @@ extension ManagedObjectContext {
         try rawValue.save()
     }
 
-    public func fetch<Entity: ManagedObject>(
-        predicate: Predicate<Entity>? = nil,
-        sortDescriptors: [SortDescriptor<Entity>] = [],
-        offset: Int? = nil,
-        limit: Int? = nil
-    ) throws -> [Entity] {
-        try rawValue.fetch(Entity.fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors, offset: offset, limit: limit))
+    public func create<Object: ManagedObject>() -> Object {
+        Object(context: rawValue)
     }
 
-    public func distinct<Entity: ManagedObject, Value>(_ keyPaths: [KeyPath<Entity, Value>], predicate: Predicate<Entity>? = nil, sortDescriptors: [SortDescriptor<Entity>]) throws -> [Value] {
-        let request = Entity.fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors)
+    public func fetch<Object: ManagedObject>(
+        predicate: Predicate<Object>? = nil,
+        sortDescriptors: [SortDescriptor<Object>] = [],
+        offset: Int? = nil,
+        limit: Int? = nil
+    ) throws -> [Object] {
+        try rawValue.fetch(Object.fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors, offset: offset, limit: limit))
+    }
+
+    public func distinct<Object: ManagedObject, Value>(_ keyPaths: [KeyPath<Object, Value>], predicate: Predicate<Object>? = nil, sortDescriptors: [SortDescriptor<Object>]) throws -> [Value] {
+        let request = Object.fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors)
         request.returnsDistinctResults = true
         request.propertiesToFetch = keyPaths.map(\.pathString)
         request.resultType = .dictionaryResultType
@@ -40,29 +40,29 @@ extension ManagedObjectContext {
         return dic.compactMap { $0.values.first }
     }
 
-    public func update<Entity: ManagedObject>(_ entities: [Entity], updating: @escaping (Entity) -> Void) async throws {
-        await rawValue.perform(schedule: .enqueued) { [unowned self] in
-            for entity in entities {
-                updating(rawValue.object(with: entity.objectID) as! Entity)
+    public func update<Object: ManagedObject>(_ objects: [Object], updating: @escaping (Object) -> Void) async throws {
+        await rawValue.perform { [unowned self] in
+            for object in objects {
+                updating(rawValue.object(with: object.objectID) as! Object)
             }
         }
     }
 
-    public func delete<Entity: ManagedObject>(_ entities: [Entity]) async throws {
-        await rawValue.perform(schedule: .enqueued) { [unowned self] in
-            for entity in entities {
-                rawValue.delete(rawValue.object(with: entity.objectID))
+    public func delete<Object: ManagedObject>(_ objects: [Object]) async throws {
+        await rawValue.perform { [unowned self] in
+            for object in objects {
+                rawValue.delete(rawValue.object(with: object.objectID))
             }
         }
     }
 }
 
 extension ManagedObjectContext {
-    public func fetch<Entity: ManagedObject>(_ sortDescriptors: [SortDescriptor<Entity>] = [], offset: Int? = nil, limit: Int? = nil, @AndPredicateBuilder<Entity> predicate: () -> Predicate<Entity>) throws -> [Entity] {
+    public func fetch<Object: ManagedObject>(_ sortDescriptors: [SortDescriptor<Object>] = [], offset: Int? = nil, limit: Int? = nil, @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) throws -> [Object] {
         try fetch(predicate: predicate(), sortDescriptors: sortDescriptors, offset: offset, limit: limit)
     }
 
-    public func fetchOrCreate<Entity: ManagedObject>(_ sortDescriptors: [SortDescriptor<Entity>] = [], @AndPredicateBuilder<Entity> predicate: () -> Predicate<Entity>) throws -> Entity {
+    public func fetchOrCreate<Object: ManagedObject>(_ sortDescriptors: [SortDescriptor<Object>] = [], @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) throws -> Object {
         let objects = try fetch(sortDescriptors, predicate: predicate)
         assert(objects.count <= 1)
         return objects.last ?? create()

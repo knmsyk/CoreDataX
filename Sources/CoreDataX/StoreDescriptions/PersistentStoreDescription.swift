@@ -25,3 +25,13 @@ extension PersistentStoreDescription {
     }
 }
 
+extension NSPersistentStoreDescription {
+    var storeType: NSPersistentStore.StoreType {
+        get {
+            .init(rawValue: type)
+        }
+        set {
+            type = newValue.rawValue
+        }
+    }
+}

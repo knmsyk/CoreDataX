@@ -7,7 +7,7 @@ import CoreData
 public class MemoryPersistentStoreDescription: PersistentStoreDescription {
     public init() {
         let persistentStoreDescription = NSPersistentStoreDescription(url: URL(fileURLWithPath: "/dev/null"))
-        persistentStoreDescription.type = NSInMemoryStoreType
+        persistentStoreDescription.storeType = .inMemory
 
         super.init(rawValue: persistentStoreDescription)
     }

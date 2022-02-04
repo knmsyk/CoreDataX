@@ -7,7 +7,7 @@ import CoreData
 public class SQLitePersistentStoreDescription: PersistentStoreDescription {
     public init(url: URL) {
         let persistentStoreDescription = NSPersistentStoreDescription(url: url)
-        persistentStoreDescription.type = NSSQLiteStoreType
+        persistentStoreDescription.storeType = .sqlite
 
         super.init(rawValue: persistentStoreDescription)
     }

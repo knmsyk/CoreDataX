@@ -33,7 +33,7 @@ public final class PersistenceController {
 
             Task { [unowned self] in
                 for await notification in NotificationCenter.default.notifications(named: .NSManagedObjectContextDidSave, object: backgroundContext.rawValue) {
-                    await viewContext.rawValue.perform(schedule: .immediate) { [unowned self] in
+                    await viewContext.rawValue.perform { [unowned self] in
                         viewContext.rawValue.mergeChanges(fromContextDidSave: notification)
                     }
                 }
@@ -48,7 +48,7 @@ public final class PersistenceController {
     }
 
     public func commit() async throws {
-        try await viewContext.rawValue.perform(schedule: .immediate) { [unowned self] in
+        try await viewContext.rawValue.perform { [unowned self] in
             if backgroundContext.rawValue.hasChanges {
                 try backgroundContext.rawValue.save()
             }
@@ -56,25 +56,5 @@ public final class PersistenceController {
                 try viewContext.rawValue.save()
             }
         }
-    }
-}
-
-extension ManagedObject {
-    public static func fetchRequest<Entity: ManagedObject>(
-        predicate: Predicate<Entity>?,
-        sortDescriptors: [SortDescriptor<Entity>],
-        offset: Int? = nil,
-        limit: Int? = nil
-    ) -> NSFetchRequest<Entity> {
-        let request = Entity.fetchRequest()
-        request.predicate = predicate?.rawValue
-        request.sortDescriptors = sortDescriptors.map { .init($0) }
-        if let offset = offset {
-            request.fetchOffset = offset
-        }
-        if let limit = limit {
-            request.fetchLimit = limit
-        }
-        return request as! NSFetchRequest<Entity>
     }
 }
