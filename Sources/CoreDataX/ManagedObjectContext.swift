@@ -68,11 +68,3 @@ extension ManagedObjectContext {
         return objects.last ?? create()
     }
 }
-
-// MARK: -
-
-extension AnyKeyPath {
-    fileprivate var pathString: String {
-        _kvcKeyPathString!
-    }
-}

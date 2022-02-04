@@ -45,4 +45,3 @@ public func || <Entity>(left: Predicate<Entity>, right: Predicate<Entity>) -> Pr
 prefix public func ! <Entity>(left: Predicate<Entity>) -> Predicate<Entity> {
     CompoundPredicate<Entity>(type: .not, subpredicates: [left])
 }
-

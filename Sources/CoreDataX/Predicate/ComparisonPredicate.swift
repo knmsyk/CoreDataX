@@ -189,6 +189,7 @@ public func ~ <Entity, Value: Comparable>(left: KeyPath<Entity, Value?>, right: 
 
 // .contains
 infix operator ^^: ComparisonPrecedence
+infix operator !^ : ComparisonPrecedence
 
 public func ^^ <Entity, Value: Comparable>(left: KeyPath<Entity, Value>, right: Value) -> ComparisonPredicate<Entity> {
     ComparisonPredicate<Entity>(
@@ -208,6 +209,14 @@ public func ^^ <Entity, Value: Comparable>(left: KeyPath<Entity, Value?>, right:
         type: .contains,
         options: right?.comparisonOptions ?? []
     )
+}
+
+public func !^ <Entity, Value: StringProtocol & CVarArg>(left: KeyPath<Entity, Value>, right: Value) -> Predicate<Entity> {
+    Predicate<Entity>(format: "NOT \(left.pathString) contains[cd] %@", right)
+}
+
+public func !^ <Entity, Value: StringProtocol & CVarArg>(left: KeyPath<Entity, Value?>, right: Value) -> Predicate<Entity> {
+    Predicate<Entity>(format: "NOT \(left.pathString) contains[cd] %@", right)
 }
 
 // .matches

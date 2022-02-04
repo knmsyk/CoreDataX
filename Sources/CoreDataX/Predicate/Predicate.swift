@@ -19,6 +19,10 @@ public class Predicate<Entity> {
         self.init(rawValue: NSPredicate(format: predicateFormat, arguments: argList))
     }
 
+    public convenience init(format predicateFormat: String, _ args: CVarArg) {
+        self.init(rawValue: NSPredicate(format: predicateFormat, args))
+    }
+
     public convenience init(value: Bool) {
         self.init(rawValue: NSPredicate(value: value))
     }
