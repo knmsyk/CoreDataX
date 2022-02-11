@@ -15,7 +15,7 @@ extension ManagedObject {
 extension ManagedObject {
     public static func fetchRequest<Entity: ManagedObject>(
         predicate: Predicate<Entity>?,
-        sortDescriptors: [SortDescriptor<Entity>],
+        sortDescriptors: [SortDescriptor<Entity>] = [],
         offset: Int? = nil,
         limit: Int? = nil
     ) -> NSFetchRequest<Entity> {

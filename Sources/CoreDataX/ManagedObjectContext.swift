@@ -30,6 +30,11 @@ extension ManagedObjectContext {
         try rawValue.fetch(Object.fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors, offset: offset, limit: limit))
     }
 
+    public func count<Object: ManagedObject>(_ predicate: Predicate<Object>? = nil) throws -> Int {
+        let request = Object.fetchRequest(predicate: predicate)
+        return try rawValue.count(for: request)
+    }
+
     public func distinct<Object: ManagedObject, Value>(_ keyPaths: [KeyPath<Object, Value>], predicate: Predicate<Object>? = nil, sortDescriptors: [SortDescriptor<Object>]) throws -> [Value] {
         let request = Object.fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors)
         request.returnsDistinctResults = true
