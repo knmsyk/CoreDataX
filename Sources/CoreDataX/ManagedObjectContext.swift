@@ -72,4 +72,8 @@ extension ManagedObjectContext {
         assert(objects.count <= 1)
         return objects.last ?? create()
     }
+
+    public func count<Object: ManagedObject>(@AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) throws -> Int {
+        try count(predicate())
+    }
 }
