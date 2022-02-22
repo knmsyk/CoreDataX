@@ -31,3 +31,10 @@ extension ManagedObject {
         return request as! NSFetchRequest<Entity>
     }
 }
+
+extension ManagedObject {
+    public var moc: ManagedObjectContext? {
+        guard let context = managedObjectContext else { return nil }
+        return .init(rawValue: context)
+    }
+}
