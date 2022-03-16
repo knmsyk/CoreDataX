@@ -15,9 +15,10 @@ public final class PersistenceController {
     public private(set) lazy var backgroundContext: ManagedObjectContext = makeNewBackgroundContext()
     private let container: NSPersistentContainer
 
-    public convenience init(modelName: String, inMemory: Bool = false) {
+    public convenience init(modelName: String, managedObjectModel: NSManagedObjectModel? = nil, inMemory: Bool = false) {
         self.init(
             modelName: modelName,
+            managedObjectModel: managedObjectModel,
             persistentStoreDescriptions: inMemory ? [MemoryPersistentStoreDescription()] : [SQLitePersistentStoreDescription(fileName: modelName)]
         )
     }
