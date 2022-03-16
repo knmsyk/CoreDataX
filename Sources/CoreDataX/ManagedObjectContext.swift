@@ -17,8 +17,10 @@ extension ManagedObjectContext {
         try rawValue.save()
     }
 
-    public func create<Object: ManagedObject>() -> Object {
-        Object(context: rawValue)
+    public func create<Object: ManagedObject>() async -> Object {
+        await rawValue.perform { [unowned self] in
+            Object(context: rawValue)
+        }
     }
 
     public func fetch<Object: ManagedObject>(
@@ -74,7 +76,10 @@ extension ManagedObjectContext {
     public func fetchOrCreate<Object: ManagedObject>(_ sortDescriptors: [SortDescriptor<Object>] = [], @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) async throws -> Object {
         let objects = try await fetch(sortDescriptors, predicate: predicate)
         assert(objects.count <= 1)
-        return objects.last ?? create()
+        if let object = objects.last {
+            return object
+        }
+        return await create()
     }
 
     public func count<Object: ManagedObject>(@AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) async throws -> Int {
