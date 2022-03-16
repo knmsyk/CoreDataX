@@ -22,8 +22,12 @@ public final class PersistenceController {
         )
     }
 
-    public init(modelName: String, persistentStoreDescriptions: [PersistentStoreDescription]) {
-        container = NSPersistentCloudKitContainer(name: modelName)
+    public init(modelName: String, managedObjectModel: NSManagedObjectModel? = nil, persistentStoreDescriptions: [PersistentStoreDescription]) {
+        if let managedObjectModel = managedObjectModel {
+            container = NSPersistentCloudKitContainer(name: modelName, managedObjectModel: managedObjectModel)
+        } else {
+            container = NSPersistentCloudKitContainer(name: modelName)
+        }
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.persistentStoreDescriptions = persistentStoreDescriptions.map(\.rawValue)
         container.loadPersistentStores { [unowned self] _, error in
