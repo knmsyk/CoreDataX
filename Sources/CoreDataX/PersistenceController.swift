@@ -32,9 +32,9 @@ public final class PersistenceController {
             }
 
             Task { [unowned self] in
-                for await notification in NotificationCenter.default.notifications(named: .NSManagedObjectContextDidSave, object: backgroundContext.rawValue) {
-                    await viewContext.rawValue.perform { [unowned self] in
-                        viewContext.rawValue.mergeChanges(fromContextDidSave: notification)
+                for await notification in NotificationCenter.default.notifications(named: .NSManagedObjectContextDidSave, object: self.backgroundContext.rawValue) {
+                    await self.viewContext.rawValue.perform { [unowned self] in
+                        self.viewContext.rawValue.mergeChanges(fromContextDidSave: notification)
                     }
                 }
             }
