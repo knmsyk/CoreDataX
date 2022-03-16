@@ -26,13 +26,17 @@ extension ManagedObjectContext {
         sortDescriptors: [SortDescriptor<Object>] = [],
         offset: Int? = nil,
         limit: Int? = nil
-    ) throws -> [Object] {
-        try rawValue.fetch(Object.fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors, offset: offset, limit: limit))
+    ) async throws -> [Object] {
+        try await rawValue.perform { [unowned self] in
+            try rawValue.fetch(Object.fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors, offset: offset, limit: limit))
+        }
     }
 
-    public func count<Object: ManagedObject>(_ predicate: Predicate<Object>? = nil) throws -> Int {
-        let request = Object.fetchRequest(predicate: predicate)
-        return try rawValue.count(for: request)
+    public func count<Object: ManagedObject>(_ predicate: Predicate<Object>? = nil) async throws -> Int {
+        try await rawValue.perform { [unowned self] in
+            let request = Object.fetchRequest(predicate: predicate)
+            return try rawValue.count(for: request)
+        }
     }
 
     public func distinct<Object: ManagedObject, Value>(_ keyPaths: [KeyPath<Object, Value>], predicate: Predicate<Object>? = nil, sortDescriptors: [SortDescriptor<Object>]) throws -> [Value] {
@@ -63,17 +67,17 @@ extension ManagedObjectContext {
 }
 
 extension ManagedObjectContext {
-    public func fetch<Object: ManagedObject>(_ sortDescriptors: [SortDescriptor<Object>] = [], offset: Int? = nil, limit: Int? = nil, @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) throws -> [Object] {
-        try fetch(predicate: predicate(), sortDescriptors: sortDescriptors, offset: offset, limit: limit)
+    public func fetch<Object: ManagedObject>(_ sortDescriptors: [SortDescriptor<Object>] = [], offset: Int? = nil, limit: Int? = nil, @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) async throws -> [Object] {
+        try await fetch(predicate: predicate(), sortDescriptors: sortDescriptors, offset: offset, limit: limit)
     }
 
-    public func fetchOrCreate<Object: ManagedObject>(_ sortDescriptors: [SortDescriptor<Object>] = [], @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) throws -> Object {
-        let objects = try fetch(sortDescriptors, predicate: predicate)
+    public func fetchOrCreate<Object: ManagedObject>(_ sortDescriptors: [SortDescriptor<Object>] = [], @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) async throws -> Object {
+        let objects = try await fetch(sortDescriptors, predicate: predicate)
         assert(objects.count <= 1)
         return objects.last ?? create()
     }
 
-    public func count<Object: ManagedObject>(@AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) throws -> Int {
-        try count(predicate())
+    public func count<Object: ManagedObject>(@AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) async throws -> Int {
+        try await count(predicate())
     }
 }
