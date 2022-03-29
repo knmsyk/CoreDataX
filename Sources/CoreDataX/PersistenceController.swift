@@ -30,6 +30,7 @@ public final class PersistenceController {
             container = NSPersistentCloudKitContainer(name: modelName)
         }
         container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         container.persistentStoreDescriptions = persistentStoreDescriptions.map(\.rawValue)
         container.loadPersistentStores { [unowned self] _, error in
             if let error = error as NSError? {
@@ -49,6 +50,7 @@ public final class PersistenceController {
     public func makeNewBackgroundContext() -> ManagedObjectContext {
         let context = container.newBackgroundContext()
         context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         return .init(rawValue: context)
     }
 
