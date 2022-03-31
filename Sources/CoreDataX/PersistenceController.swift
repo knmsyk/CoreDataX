@@ -56,12 +56,10 @@ public final class PersistenceController {
 
     @MainActor
     public func commit() async throws {
-        try await backgroundContext.rawValue.perform { [unowned self] in
+        try await viewContext.rawValue.perform { [unowned self] in
             if backgroundContext.rawValue.hasChanges {
                 try backgroundContext.rawValue.save()
             }
-        }
-        try await viewContext.rawValue.perform { [unowned self] in
             if viewContext.rawValue.hasChanges {
                 try viewContext.rawValue.save()
             }
