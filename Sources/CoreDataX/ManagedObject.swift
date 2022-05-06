@@ -17,7 +17,8 @@ extension ManagedObject {
         predicate: Predicate<Entity>?,
         sortDescriptors: [SortDescriptor<Entity>] = [],
         offset: Int? = nil,
-        limit: Int? = nil
+        limit: Int? = nil,
+        size: Int? = nil
     ) -> NSFetchRequest<Entity> {
         let request = Entity.fetchRequest()
         request.predicate = predicate?.rawValue
@@ -27,6 +28,9 @@ extension ManagedObject {
         }
         if let limit = limit {
             request.fetchLimit = limit
+        }
+        if let size = size {
+            request.fetchBatchSize = size
         }
         return request as! NSFetchRequest<Entity>
     }

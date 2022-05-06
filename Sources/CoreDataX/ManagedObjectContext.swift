@@ -27,10 +27,19 @@ extension ManagedObjectContext {
         predicate: Predicate<Object>? = nil,
         sortDescriptors: [SortDescriptor<Object>] = [],
         offset: Int? = nil,
-        limit: Int? = nil
+        limit: Int? = nil,
+        size: Int? = nil
     ) async throws -> [Object] {
         try await rawValue.perform { [unowned self] in
-            try rawValue.fetch(Object.fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors, offset: offset, limit: limit))
+            try rawValue.fetch(
+                Object.fetchRequest(
+                    predicate: predicate,
+                    sortDescriptors: sortDescriptors,
+                    offset: offset,
+                    limit: limit,
+                    size: size
+                )
+            )
         }
     }
 
@@ -66,11 +75,33 @@ extension ManagedObjectContext {
             }
         }
     }
+
+    public func batchDelete<Object: ManagedObject>(predicate: Predicate<Object>? = nil) async throws {
+        try await rawValue.perform { [unowned self] in
+            let request = Object.fetchRequest()
+            request.predicate = predicate?.rawValue
+
+            let batchRequest = NSBatchDeleteRequest(fetchRequest: request)
+            try rawValue.execute(batchRequest)
+        }
+    }
 }
 
 extension ManagedObjectContext {
-    public func fetch<Object: ManagedObject>(_ sortDescriptors: [SortDescriptor<Object>] = [], offset: Int? = nil, limit: Int? = nil, @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) async throws -> [Object] {
-        try await fetch(predicate: predicate(), sortDescriptors: sortDescriptors, offset: offset, limit: limit)
+    public func fetch<Object: ManagedObject>(
+        _ sortDescriptors: [SortDescriptor<Object>] = [],
+        offset: Int? = nil,
+        limit: Int? = nil,
+        size: Int? = nil,
+        @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>
+    ) async throws -> [Object] {
+        try await fetch(
+            predicate: predicate(),
+            sortDescriptors: sortDescriptors,
+            offset: offset,
+            limit: limit,
+            size: size
+        )
     }
 
     public func fetchOrCreate<Object: ManagedObject>(_ sortDescriptors: [SortDescriptor<Object>] = [], @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) async throws -> Object {
