@@ -2,6 +2,7 @@
 //  Copyright © 2022 msyk. All rights reserved.
 //
 
+import CoreData
 import Foundation
 
 public final class CloudKitPersistentStoreDescription: SQLitePersistentStoreDescription {
