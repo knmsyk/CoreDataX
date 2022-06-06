@@ -9,6 +9,7 @@ public final class CloudKitPersistentStoreDescription: SQLitePersistentStoreDesc
     public init(url: URL, containerIdentifier: String) {
         super.init(url: url)
         rawValue.cloudKitContainerOptions = .init(containerIdentifier: containerIdentifier)
+        rawValue.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
         rawValue.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
     }
 
