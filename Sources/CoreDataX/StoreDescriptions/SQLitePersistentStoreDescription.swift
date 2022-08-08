@@ -8,8 +8,8 @@ public class SQLitePersistentStoreDescription: PersistentStoreDescription {
     public init(url: URL) {
         let persistentStoreDescription = NSPersistentStoreDescription(url: url)
         persistentStoreDescription.storeType = .sqlite
-
         super.init(rawValue: persistentStoreDescription)
+        rawValue.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
     }
 
     public convenience init(fileName: String, groupName: String? = nil) {

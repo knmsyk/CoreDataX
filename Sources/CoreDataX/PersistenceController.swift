@@ -13,6 +13,7 @@ public final class PersistenceController {
 
     public private(set) lazy var viewContext: ManagedObjectContext = .init(rawValue: container.viewContext)
     public private(set) lazy var backgroundContext: ManagedObjectContext = makeNewBackgroundContext()
+    public private(set) var spotlightDelegates: [NSCoreDataCoreSpotlightDelegate] = []
     private let container: NSPersistentContainer
 
     public convenience init(modelName: String, managedObjectModel: NSManagedObjectModel? = nil, inMemory: Bool = false) {
@@ -32,6 +33,13 @@ public final class PersistenceController {
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         container.persistentStoreDescriptions = persistentStoreDescriptions.map(\.rawValue)
+        container.persistentStoreDescriptions
+            .filter { $0.storeType == .sqlite }
+            .forEach { storeDescription in
+                let spotlightDelegate = NSCoreDataCoreSpotlightDelegate(forStoreWith: storeDescription, coordinator: container.persistentStoreCoordinator)
+                spotlightDelegate.startSpotlightIndexing()
+                spotlightDelegates.append(spotlightDelegate)
+            }
         container.loadPersistentStores { [unowned self] _, error in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
