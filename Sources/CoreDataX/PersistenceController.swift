@@ -24,6 +24,10 @@ public final class PersistenceController {
         )
     }
 
+    public convenience init(modelName: String, managedObjectModel: NSManagedObjectModel? = nil, mode: Mode) {
+        self.init(modelName: modelName, managedObjectModel: managedObjectModel, persistentStoreDescriptions: [.make(mode)])
+    }
+
     public init(modelName: String, managedObjectModel: NSManagedObjectModel? = nil, persistentStoreDescriptions: [PersistentStoreDescription]) {
         if let managedObjectModel = managedObjectModel {
             container = NSPersistentCloudKitContainer(name: modelName, managedObjectModel: managedObjectModel)
