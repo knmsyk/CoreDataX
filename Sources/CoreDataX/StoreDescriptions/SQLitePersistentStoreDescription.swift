@@ -27,13 +27,9 @@ extension FileManager {
 
     private func directoryURL(groupName: String?) -> URL {
         if let groupName = groupName {
-            return containerURL(groupName: groupName)
+            return containerURL(forSecurityApplicationGroupIdentifier: groupName)!
         } else {
-            return urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            return NSPersistentContainer.defaultDirectoryURL()
         }
-    }
-
-    private func containerURL(groupName: String) -> URL {
-        containerURL(forSecurityApplicationGroupIdentifier: groupName)!
     }
 }
