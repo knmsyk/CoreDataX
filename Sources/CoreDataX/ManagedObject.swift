@@ -34,4 +34,16 @@ extension ManagedObject {
         }
         return request as! NSFetchRequest<Entity>
     }
+
+    public static func distinctFetchRequest<Entity: ManagedObject, Value>(
+        _ keyPaths: [KeyPath<Entity, Value>],
+        predicate: Predicate<Entity>?,
+        sortDescriptors: [SortDescriptor<Entity>] = []
+    ) -> NSFetchRequest<Entity> {
+        let request = fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors)
+        request.returnsDistinctResults = true
+        request.propertiesToFetch = keyPaths.map(\.pathString)
+        request.resultType = .dictionaryResultType
+        return request
+    }
 }

@@ -52,10 +52,7 @@ extension ManagedObjectContext {
 
     public func distinct<Object: ManagedObject, Value>(_ keyPaths: [KeyPath<Object, Value>], predicate: Predicate<Object>? = nil, sortDescriptors: [SortDescriptor<Object>]) async throws -> [Value] {
         try await rawValue.perform { [unowned self] in
-            let request = Object.fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors)
-            request.returnsDistinctResults = true
-            request.propertiesToFetch = keyPaths.map(\.pathString)
-            request.resultType = .dictionaryResultType
+            let request = Object.distinctFetchRequest(keyPaths, predicate: predicate, sortDescriptors: sortDescriptors)
             let result = try rawValue.fetch(request) as! [NSDictionary]
             let dic = result as! [[String: Value]]
             return dic.compactMap { $0.values.first }
