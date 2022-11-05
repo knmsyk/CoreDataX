@@ -75,6 +75,9 @@ extension ManagedObjectContext {
         }
     }
 
+    /// Delete objects in the SQLite persistent store without loading them into memory.
+    /// Available only when using a SQLite persistent store
+    /// Ref: https://developer.apple.com/documentation/coredata/nsbatchdeleterequest
     public func batchDelete<Object: ManagedObject>(predicate: Predicate<Object>? = nil) async throws {
         try await rawValue.perform { [unowned self] in
             let request = Object.fetchRequest()
