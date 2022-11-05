@@ -12,7 +12,6 @@ public final class PersistenceController {
     }
 
     public private(set) lazy var viewContext: ManagedObjectContext = .init(rawValue: container.viewContext)
-    public private(set) lazy var backgroundContext: ManagedObjectContext = makeNewBackgroundContext()
     public private(set) var spotlightDelegates: [NSCoreDataCoreSpotlightDelegate] = []
     private let container: NSPersistentContainer
 
@@ -39,22 +38,14 @@ public final class PersistenceController {
         container.persistentStoreDescriptions = persistentStoreDescriptions.map(\.rawValue)
         container.persistentStoreDescriptions
             .filter { $0.storeType == .sqlite }
-            .forEach { storeDescription in
+            .forEach { [unowned self] storeDescription in
                 let spotlightDelegate = NSCoreDataCoreSpotlightDelegate(forStoreWith: storeDescription, coordinator: container.persistentStoreCoordinator)
                 spotlightDelegate.startSpotlightIndexing()
                 spotlightDelegates.append(spotlightDelegate)
             }
-        container.loadPersistentStores { [unowned self] _, error in
+        container.loadPersistentStores { _, error in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
-            }
-
-            Task { [unowned self] in
-                for await notification in NotificationCenter.default.notifications(named: .NSManagedObjectContextDidSave, object: self.backgroundContext.rawValue) {
-                    await self.viewContext.rawValue.perform { [unowned self] in
-                        self.viewContext.rawValue.mergeChanges(fromContextDidSave: notification)
-                    }
-                }
             }
         }
     }
@@ -66,13 +57,7 @@ public final class PersistenceController {
         return .init(rawValue: context)
     }
 
-    @MainActor
-    public func commit() async throws {
-        try await backgroundContext.rawValue.perform { [unowned self] in
-            if backgroundContext.rawValue.hasChanges {
-                try backgroundContext.rawValue.save()
-            }
-        }
+    public func persist() async throws {
         try await viewContext.rawValue.perform { [unowned self] in
             if viewContext.rawValue.hasChanges {
                 try viewContext.rawValue.save()
@@ -80,3 +65,16 @@ public final class PersistenceController {
         }
     }
 }
+
+// MARK: -
+
+extension PersistenceController {
+    public func withBackgroundContext(_ body: @escaping (ManagedObjectContext) throws -> Void) async throws {
+        let backgroundContext = makeNewBackgroundContext()
+        try await backgroundContext.rawValue.perform {
+            try body(backgroundContext)
+        }
+        try await persist()
+    }
+}
+
