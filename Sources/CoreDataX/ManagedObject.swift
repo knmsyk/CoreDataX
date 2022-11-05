@@ -39,11 +39,13 @@ extension ManagedObject {
         _ keyPaths: [KeyPath<Entity, Value>],
         predicate: Predicate<Entity>?,
         sortDescriptors: [SortDescriptor<Entity>] = []
-    ) -> NSFetchRequest<Entity> {
-        let request = fetchRequest(predicate: predicate, sortDescriptors: sortDescriptors)
+    ) -> NSFetchRequest<NSDictionary> {
+        let request = Entity.fetchRequest()
+        request.predicate = predicate?.rawValue
+        request.sortDescriptors = sortDescriptors.map { .init($0) }
         request.returnsDistinctResults = true
         request.propertiesToFetch = keyPaths.map(\.pathString)
         request.resultType = .dictionaryResultType
-        return request
+        return request as! NSFetchRequest<NSDictionary>
     }
 }
