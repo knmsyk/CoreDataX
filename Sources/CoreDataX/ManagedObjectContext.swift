@@ -5,7 +5,7 @@
 import CoreData
 
 public final actor ManagedObjectContext {
-    public let rawValue: NSManagedObjectContext
+    public nonisolated let rawValue: NSManagedObjectContext
 
     public init(rawValue: NSManagedObjectContext) {
         self.rawValue = rawValue
