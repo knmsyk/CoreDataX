@@ -84,7 +84,15 @@ extension ManagedObjectContext {
             request.predicate = predicate?.rawValue
 
             let batchRequest = NSBatchDeleteRequest(fetchRequest: request)
-            try rawValue.execute(batchRequest)
+            batchRequest.resultType = .resultTypeObjectIDs
+            let deleteResult = try rawValue.execute(batchRequest) as? NSBatchDeleteResult
+
+            if let objectIDs = deleteResult?.result as? [NSManagedObjectID] {
+                NSManagedObjectContext.mergeChanges(
+                    fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
+                    into: [rawValue]
+                )
+            }
         }
     }
 }
