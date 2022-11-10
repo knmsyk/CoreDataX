@@ -36,16 +36,20 @@ public final class PersistenceController {
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         container.persistentStoreDescriptions = persistentStoreDescriptions.map(\.rawValue)
-        container.persistentStoreDescriptions
-            .filter { $0.storeType == .sqlite }
-            .forEach { [unowned self] storeDescription in
-                let spotlightDelegate = NSCoreDataCoreSpotlightDelegate(forStoreWith: storeDescription, coordinator: container.persistentStoreCoordinator)
-                spotlightDelegate.startSpotlightIndexing()
-                spotlightDelegates.append(spotlightDelegate)
-            }
-        container.loadPersistentStores { _, error in
+        container.loadPersistentStores { [unowned self] _, error in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
+            } else {
+                container.persistentStoreDescriptions
+                    .filter { $0.storeType == .sqlite }
+                    .forEach { [unowned self] storeDescription in
+                        let spotlightDelegate = NSCoreDataCoreSpotlightDelegate(
+                            forStoreWith: storeDescription,
+                            coordinator: self.container.persistentStoreCoordinator
+                        )
+                        spotlightDelegate.startSpotlightIndexing()
+                        self.spotlightDelegates.append(spotlightDelegate)
+                    }
             }
         }
     }
