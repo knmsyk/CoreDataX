@@ -24,23 +24,29 @@ extension ManagedObjectContext {
     }
 
     public func fetch<Object: ManagedObject>(
+        request: NSFetchRequest<Object>
+    ) async throws -> [Object] {
+        try await rawValue.perform { [unowned self] in
+            try rawValue.fetch(request)
+        }
+    }
+
+    public func fetch<Object: ManagedObject>(
         predicate: Predicate<Object>? = nil,
         sortDescriptors: [SortDescriptor<Object>] = [],
         offset: Int? = nil,
         limit: Int? = nil,
         size: Int? = nil
     ) async throws -> [Object] {
-        try await rawValue.perform { [unowned self] in
-            try rawValue.fetch(
-                Object.fetchRequest(
-                    predicate: predicate,
-                    sortDescriptors: sortDescriptors,
-                    offset: offset,
-                    limit: limit,
-                    size: size
-                )
+        try await fetch(
+            request: Object.fetchRequest(
+                predicate: predicate,
+                sortDescriptors: sortDescriptors,
+                offset: offset,
+                limit: limit,
+                size: size
             )
-        }
+        )
     }
 
     public func count<Object: ManagedObject>(_ predicate: Predicate<Object>? = nil) async throws -> Int {
@@ -79,10 +85,13 @@ extension ManagedObjectContext {
     /// Available only when using a SQLite persistent store
     /// Ref: https://developer.apple.com/documentation/coredata/nsbatchdeleterequest
     public func batchDelete<Object: ManagedObject>(predicate: Predicate<Object>? = nil) async throws {
-        try await rawValue.perform { [unowned self] in
-            let request = Object.fetchRequest()
-            request.predicate = predicate?.rawValue
+        let request = Object.fetchRequest()
+        request.predicate = predicate?.rawValue
+        try await batchDelete(request: request)
+    }
 
+    public func batchDelete(request: NSFetchRequest<any NSFetchRequestResult>) async throws {
+        try await rawValue.perform { [unowned self] in
             let batchRequest = NSBatchDeleteRequest(fetchRequest: request)
             batchRequest.resultType = .resultTypeObjectIDs
             let deleteResult = try rawValue.execute(batchRequest) as? NSBatchDeleteResult
@@ -98,6 +107,10 @@ extension ManagedObjectContext {
 }
 
 extension ManagedObjectContext {
+    public var isInMemory: Bool {
+        rawValue.persistentStoreCoordinator?.persistentStores.first?.type == NSPersistentStore.StoreType.inMemory.rawValue
+    }
+
     public func fetch<Object: ManagedObject>(
         _ sortDescriptors: [SortDescriptor<Object>] = [],
         offset: Int? = nil,
@@ -114,7 +127,17 @@ extension ManagedObjectContext {
         )
     }
 
-    public func fetchOrCreate<Object: ManagedObject>(_ sortDescriptors: [SortDescriptor<Object>] = [], @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) async throws -> Object {
+    public func fetchAll<Object: ManagedObject>(
+        _ entityType: Object.Type,
+        sortDescriptors: [SortDescriptor<Object>] = []
+    ) async throws -> [Object] {
+        try await fetch(request: entityType.fetchRequest(predicate: nil, sortDescriptors: sortDescriptors))
+    }
+
+    public func fetchOrCreate<Object: ManagedObject>(
+        _ sortDescriptors: [SortDescriptor<Object>] = [],
+        @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>
+    ) async throws -> Object {
         let objects = try await fetch(sortDescriptors, predicate: predicate)
         assert(objects.count <= 1)
         if let object = objects.last {
@@ -123,7 +146,19 @@ extension ManagedObjectContext {
         return await create()
     }
 
-    public func count<Object: ManagedObject>(@AndPredicateBuilder<Object> predicate: () -> Predicate<Object>) async throws -> Int {
+    public func count<Object: ManagedObject>(
+        @AndPredicateBuilder<Object> predicate: () -> Predicate<Object>
+    ) async throws -> Int {
         try await count(predicate())
+    }
+
+    public func deleteAll<Object: ManagedObject>(
+        _ entityType: Object.Type
+    ) async throws {
+        if isInMemory {
+            try await delete(fetchAll(entityType))
+        } else {
+            try await batchDelete(request: entityType.fetchRequest())
+        }
     }
 }
