@@ -17,6 +17,10 @@ extension ManagedObjectContext {
         try rawValue.save()
     }
 
+    public func commit() async throws {
+        try await rawValue.commit()
+    }
+
     public func create<Object: ManagedObject>() async -> Object {
         await rawValue.perform { [unowned self] in
             Object(context: rawValue)
@@ -160,5 +164,13 @@ extension ManagedObjectContext {
         } else {
             try await batchDelete(request: entityType.fetchRequest())
         }
+    }
+}
+
+extension NSManagedObjectContext {
+    @MainActor
+    public func commit() throws {
+        guard hasChanges else { return }
+        try save()
     }
 }

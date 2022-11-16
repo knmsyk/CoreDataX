@@ -60,14 +60,6 @@ public final class PersistenceController {
         context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         return .init(rawValue: context)
     }
-
-    public func persist() async throws {
-        try await viewContext.rawValue.perform { [unowned self] in
-            if viewContext.rawValue.hasChanges {
-                try viewContext.rawValue.save()
-            }
-        }
-    }
 }
 
 // MARK: -
@@ -78,7 +70,7 @@ extension PersistenceController {
         try await backgroundContext.rawValue.perform {
             try body(backgroundContext)
         }
-        try await persist()
+        try await backgroundContext.commit()
     }
 }
 
