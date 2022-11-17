@@ -69,7 +69,7 @@ extension ManagedObjectContext {
         }
     }
 
-    public func update<Object: ManagedObject>(_ objects: [Object], updating: @escaping (Object) -> Void) async throws {
+    public func update<Object: ManagedObject>(_ objects: [Object], updating: @escaping (Object) -> Void) async {
         await rawValue.perform { [unowned self] in
             for object in objects {
                 updating(rawValue.object(with: object.objectID) as! Object)
@@ -77,7 +77,7 @@ extension ManagedObjectContext {
         }
     }
 
-    public func delete<Object: ManagedObject>(_ objects: [Object]) async throws {
+    public func delete<Object: ManagedObject>(_ objects: [Object]) async {
         await rawValue.perform { [unowned self] in
             for object in objects {
                 rawValue.delete(rawValue.object(with: object.objectID))
