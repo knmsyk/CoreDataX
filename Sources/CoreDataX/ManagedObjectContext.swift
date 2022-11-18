@@ -4,8 +4,8 @@
 
 import CoreData
 
-public final actor ManagedObjectContext {
-    public nonisolated let rawValue: NSManagedObjectContext
+public final class ManagedObjectContext {
+    public let rawValue: NSManagedObjectContext
 
     public init(rawValue: NSManagedObjectContext) {
         self.rawValue = rawValue
@@ -13,10 +13,6 @@ public final actor ManagedObjectContext {
 }
 
 extension ManagedObjectContext {
-    public nonisolated func save() throws {
-        try rawValue.save()
-    }
-
     public func commit() async throws {
         try await rawValue.commit()
     }
@@ -168,9 +164,10 @@ extension ManagedObjectContext {
 }
 
 extension NSManagedObjectContext {
-    @MainActor
-    public func commit() throws {
-        guard hasChanges else { return }
-        try save()
+    public func commit() async throws {
+        try await perform { [unowned self] in
+            guard hasChanges else { return }
+            try save()
+        }
     }
 }
