@@ -81,16 +81,19 @@ extension ManagedObjectContext {
         }
     }
 
-    /// Delete objects in the SQLite persistent store without loading them into memory.
-    /// Available only when using a SQLite persistent store
-    /// Ref: https://developer.apple.com/documentation/coredata/nsbatchdeleterequest
-    public func batchDelete<Object: ManagedObject>(predicate: Predicate<Object>? = nil) async throws {
-        let request = Object.fetchRequest()
-        request.predicate = predicate?.rawValue
-        try await batchDelete(request: request)
+    public func batchDelete<Object: ManagedObject>(predicate: Predicate<Object>) async throws {
+        if isSQLite {
+            let request = Object.fetchRequest()
+            request.predicate = predicate.rawValue
+            try await batchDelete(request: request)
+        } else {
+            let request = Object.fetchRequest(predicate: predicate)
+            let objects = try await fetch(request: request)
+            await delete(objects)
+        }
     }
 
-    public func batchDelete(request: NSFetchRequest<any NSFetchRequestResult>) async throws {
+    public func batchDelete(request: NSFetchRequest<NSFetchRequestResult>) async throws {
         try await rawValue.perform { [unowned self] in
             let batchRequest = NSBatchDeleteRequest(fetchRequest: request)
             batchRequest.resultType = .resultTypeObjectIDs
@@ -109,6 +112,10 @@ extension ManagedObjectContext {
 extension ManagedObjectContext {
     public var isInMemory: Bool {
         rawValue.persistentStoreCoordinator?.persistentStores.first?.type == NSPersistentStore.StoreType.inMemory.rawValue
+    }
+
+    public var isSQLite: Bool {
+        rawValue.persistentStoreCoordinator?.persistentStores.first?.type == NSPersistentStore.StoreType.sqlite.rawValue
     }
 
     public func fetch<Object: ManagedObject>(
@@ -155,10 +162,10 @@ extension ManagedObjectContext {
     public func deleteAll<Object: ManagedObject>(
         _ entityType: Object.Type
     ) async throws {
-        if isInMemory {
-            try await delete(fetchAll(entityType))
-        } else {
+        if isSQLite {
             try await batchDelete(request: entityType.fetchRequest())
+        } else {
+            try await delete(fetchAll(entityType))
         }
     }
 }
