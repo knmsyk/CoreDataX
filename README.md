@@ -1,6 +1,6 @@
 # CoreDataX
 
-CoreData extensions for making it better
+Extensions for easy use of CoreData.
 
 ## References
 - [Bring Core Data concurrency to Swift and SwiftUI - WWDC21 - Videos - Apple Developer](https://developer.apple.com/videos/play/wwdc2021/10017/)

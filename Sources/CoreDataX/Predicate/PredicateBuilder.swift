@@ -25,11 +25,11 @@ public struct AndPredicateBuilder<Entity> {
 
 @resultBuilder
 public struct OrPredicateBuilder<Entity> {
-    static func buildBlock(_ components: Predicate<Entity>...) -> Predicate<Entity> {
+    public static func buildBlock(_ components: Predicate<Entity>...) -> Predicate<Entity> {
         CompoundPredicate(or: components)
     }
 
-    static func buildOptional(_ component: Predicate<Entity>?) -> Predicate<Entity> {
+    public static func buildOptional(_ component: Predicate<Entity>?) -> Predicate<Entity> {
         CompoundPredicate(or: [component].compactMap { $0 })
     }
 
